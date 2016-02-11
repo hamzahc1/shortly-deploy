@@ -1,4 +1,5 @@
 var app = require('./server-config.js');
+var mongoose = require('mongoose');
 
 var port = 4568;
 

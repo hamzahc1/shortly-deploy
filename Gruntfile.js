@@ -60,13 +60,11 @@ module.exports = function(grunt) {
       scripts: {
         files: [
           'public/client/**/*.js',
-          'public/lib/**/*.js',
-          'public/style.css'
+          'public/lib/**/*.js'
         ],
         tasks: [
           'concat',
           'uglify',
-          'cssmin',
         ]
       },
       css: {
@@ -77,11 +75,8 @@ module.exports = function(grunt) {
 
     shell: {
       multiple: {
-        command: [
-        'ssh root@104.236.135.5',
-        'cd /root/shortly-deploy',
-        'grunt upload --prod=true'
-        ].join('&&')
+        command: 'git push prod master'
+        
       }
     },
   });
@@ -91,6 +86,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-eslint');
+  grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-nodemon');
@@ -113,20 +109,29 @@ module.exports = function(grunt) {
   ////////////////////////////////////////////////////
 
   grunt.registerTask('test', [
+    'eslint',
     'mochaTest'
   ]);
 
-  grunt.registerTask('build', ['eslint', 'concat', 'uglify', 'cssmin', 'test']);
+  grunt.registerTask('build', [
+    'concat',
+    'uglify',
+    'cssmin'
+  ]);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      grunt.task.run(['build']);
-    } 
-    grunt.task.run([ 'server-dev' ]);
-    
+
+      grunt.task.run([ 'shell:multiple' ]);
+          } else {
+      grunt.task.run([ 'server-dev' ]);
+    }
   });
 
-  grunt.registerTask('deploy', ['shell:multiple']);
-
+  grunt.registerTask('deploy', [
+    'test',
+    'build',
+    'upload'
+  ]);
 
 };
