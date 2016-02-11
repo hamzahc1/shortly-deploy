@@ -61,10 +61,12 @@ module.exports = function(grunt) {
         files: [
           'public/client/**/*.js',
           'public/lib/**/*.js',
+          'public/style.css'
         ],
         tasks: [
           'concat',
-          'uglify'
+          'uglify',
+          'cssmin',
         ]
       },
       css: {
@@ -74,7 +76,12 @@ module.exports = function(grunt) {
     },
 
     shell: {
-      prodServer: {
+      multiple: {
+        command: [
+        'ssh root@104.236.135.5',
+        'cd /root/shortly-deploy',
+        'grunt upload --prod=true'
+        ].join('&&')
       }
     },
   });
@@ -109,19 +116,17 @@ module.exports = function(grunt) {
     'mochaTest'
   ]);
 
-  grunt.registerTask('build', ['eslint', 'concat', 'uglify']);
+  grunt.registerTask('build', ['eslint', 'concat', 'uglify', 'cssmin', 'test']);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      grunt.task.run(['build', 'test']);
-    } else {
-      grunt.task.run([ 'server-dev' ]);
-    }
+      grunt.task.run(['build']);
+    } 
+    grunt.task.run([ 'server-dev' ]);
+    
   });
 
-  grunt.registerTask('deploy', [
-    // add your deploy tasks here
-  ]);
+  grunt.registerTask('deploy', ['shell:multiple']);
 
 
 };
