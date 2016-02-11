@@ -1,8 +1,19 @@
 module.exports = function(grunt) {
+  var dependencies = ['public/lib/jquery.js', 'public/lib/underscore.js', 'public/lib/backbone.js', 'public/lib/handlebars.js'];
+  var appFiles = ['public/client/**/*.js'];
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      options: {
+          separator: ';',
+        },
+      basic_and_extras: {
+        files: {
+          'public/dist/dep.js' : dependencies,
+          'public/dist/client.js' : appFiles
+        }
+      }
     },
 
     mochaTest: {
@@ -21,15 +32,28 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      my_target: {
+        files: {
+          'public/dist/dep.min.js' : ['public/dist/dep.js'],
+          'public/dist/client.min.js' : ['public/dist/client.js']
+        }
+      }
     },
 
     eslint: {
-      target: [
-        // Add list of files to lint here
-      ]
+      target: appFiles,
     },
 
     cssmin: {
+      target: {
+        files: [{
+          expand: true,
+          cwd: 'public/',
+          src: ['*.css', '!*.min.css'],
+          dest: 'public/dist/css',
+          ext: '.min.css'
+        }]
+      }
     },
 
     watch: {
@@ -77,14 +101,6 @@ module.exports = function(grunt) {
     grunt.task.run([ 'watch' ]);
   });
 
-
-  grunt.registerTask('upload', function(n) {
-    if (grunt.option('prod')) {
-      // add your production server task here
-    }
-    grunt.task.run([ 'server-dev' ]);
-  });
-
   ////////////////////////////////////////////////////
   // Main grunt tasks
   ////////////////////////////////////////////////////
@@ -93,12 +109,11 @@ module.exports = function(grunt) {
     'mochaTest'
   ]);
 
-  grunt.registerTask('build', [
-  ]);
+  grunt.registerTask('build', ['eslint', 'concat', 'uglify']);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      // add your production server task here
+      grunt.task.run(['build', 'test']);
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
